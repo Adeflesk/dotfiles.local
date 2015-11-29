@@ -1,0 +1,78 @@
+
+"Colorscheme
+set t_Co=256
+colorscheme github
+highlight NonText guibg=#060606
+highlight Folded  guibg=#0A0A0A
+
+function! ShowRoutes()
+ "Requires 'scratch' plugin
+ :topleft 100 :split __Routes__
+ "Make sure Vim doesn't write __Routes__ as file
+ :set buftype=nofile
+ "Delete everything
+ :normal 1GdG
+ "Put routes output in buffer
+ :0r! rake -s routes
+ "Size of windwo to number of lines(1 plus rake output length)
+ :exec ":normal ".line("$")."^W_ "
+ "Move cursor to bottom
+ :normal 1GG
+ "Delete empty trailing line
+ :normal dd
+endfunction
+
+nnoremap<Leader>z :call FocusOnFile()<cr>
+
+function! FocusOnFile()
+  tabnew %
+  normal! v
+  normal! l
+  call OpenTestAlternate()
+  normal! h
+endfunction
+
+"""""""""""""""""
+"Switch between Test and Production code
+""""""""""""""""""
+function! OpenTestAlternate()
+  let new_file = AlternateForCurrentFile()
+  exec ':e ' .new_file
+endfunction
+
+function! AlternateForCurrentFile()
+  let current_file = expand("%")
+  let new_file = current_file
+  let in_spec = match(current_file, '^spec/') != -1
+  let going_to_spec = !in_spec
+  let in_app = match(current_file, '\<controllers\>')!= -1 || match(current_file, '\<models\>') != -1 || match(current_file, '\views\>') != -1 || match(current_file, '<\help>') != -1
+  if going_to_spec
+    if in_app
+      let new_file = substitute(new_file, '^app/','','')
+    end
+    let new_file = substitute(new_file, '\.e\?rb$','_spec.rb','')
+    let new_file = 'spec/'. new_file
+  else
+    let new_file = substitute(new_file,'_spec\.rb$', '.rb','')
+    let new_file = substitute(new_file, '^spec/','','')
+    if in_app
+      let new_file = 'app/' . new_file
+    end
+  endif
+  return new_file
+endfunction
+
+nnoremap <Leader>f :CommandT<CR>
+map <Leader>gR :call ShowRoutes()<cr>
+map <Leader>gv :CommandTFlush<cr>\|:CommandT app/views<cr>
+map <Leader>gc :CommandTFlush<cr>\|:CommandT app/controllers<cr>
+map <Leader>gm :CommandTFlush<cr>\|:CommandT app/models<cr>
+map <Leader>gh :CommandTFlush<cr>\|:CommandT app/helpers<cr>
+map <Leader>gl :CommandTFlush<cr>\|:CommandT app/lib<cr>
+map <Leader>gp :CommandTFlush<cr>\|:CommandT public<cr>
+map <Leader>gg :topleft 100 :split Gemfile<cr>
+
+"""""""""""""""""""""""""""""""""""""""""""
+"InsertTime Command
+""""""""""""""""""""""""""""""""""""""""""
+command! InsertTime :normal a<c-r>=strftime('%F %H:%M:%S.0 %z')<cr>

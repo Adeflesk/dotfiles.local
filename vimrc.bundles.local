@@ -1,0 +1,3 @@
+Plugin 'wincent/command-t'
+Plugin 'mtth/scratch.vim'
+Plugin 'croaky/vim-colors-github'
